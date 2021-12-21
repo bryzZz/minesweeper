@@ -1,40 +1,24 @@
 import '../style.css';
-import MineSweeper from './MineSweeper';
+// import MineSweeper from './MineSweeper';
+import { MineSweeperController } from './controllers';
 
-// const matrix = getMatrix(10, 10);
-// console.log(matrix);
-
-// for (let i = 0; i < 20; i++) {
-//     setRandomMine(matrix);
-// }
-
-// -----------------------------------------------------------------------------------
-
-// const mineSweeper = new MineSweeper(10, 10);
-// // console.log(mineSweeper.matrix);
-
-// for (let i = 0; i < 20; i++) {
-//     mineSweeper.setRandomMine();
-// }
-
-// const appElement = document.querySelector('#app');
-// const containerElement = document.createElement('div');
-// containerElement.classList.add('container');
-// appElement.append(containerElement);
-
-// mineSweeper.toHtml(containerElement);
-
-// -----------------------------------------------------------------------------------
-
-const appElement = document.querySelector('#app');
-const containerElement = document.createElement('div');
-containerElement.classList.add('container');
-appElement.append(containerElement);
-
-const mineSweeper = new MineSweeper(containerElement, {
+const mineSweeper = new MineSweeperController({
     rowsCount: 12,
     columnsCount: 12,
     bombsCount: 11,
 });
 
-// console.log(mineSweeper._matrix);
+const app = document.querySelector('#app');
+
+const container = document.createElement('div');
+container.classList.add('container');
+
+container.append(mineSweeper.getView().getHtml());
+
+app.append(container);
+
+// const mineSweeper = new MineSweeper(containerElement, {
+// rowsCount: 12,
+// columnsCount: 12,
+// bombsCount: 11,
+// });
