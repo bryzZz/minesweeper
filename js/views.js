@@ -1,4 +1,4 @@
-import { customEvents } from './utils';
+import { customEvents, createElement } from './utils';
 
 export class MineSweeperView {
     constructor(model) {
@@ -23,18 +23,27 @@ export class MineSweeperView {
     }
 
     getCellElement(cell) {
-        const { id, number, isOpen } = cell;
+        const { id, number, isOpen, isMine } = cell;
 
-        const cellElement = document.createElement('div');
-        cellElement.classList.add('cell');
+        let classNames = ['cell'],
+            textContent;
 
-        if (number > 0 && isOpen) {
-            cellElement.textContent = number;
+        if (number > 0 && isOpen && !isMine) {
+            textContent = number;
         }
 
-        if (this.clickHandler !== null) {
-            cellElement.addEventListener('click', () => this.clickHandler(id));
+        if (!isOpen) {
+            classNames.push('hidden');
+        } else if (isMine) {
+            classNames.push('mine');
         }
+
+        const cellElement = createElement({
+            tagName: 'div',
+            className: classNames,
+            attributes: { 'data-id': id },
+            textContent,
+        });
 
         return cellElement;
     }
@@ -44,6 +53,8 @@ export class MineSweeperView {
     }
 
     updateHtml() {
+        console.log('update');
+
         const field = this.html.querySelector('.field');
         const matrix = this.model.getMatrix();
 
@@ -61,47 +72,12 @@ export class MineSweeperView {
         }
     }
 
-    addClickHandler(handler) {
-        this.clickHandler = handler;
-        this.updateHtml();
+    bindClick(handler) {
+        this.html.querySelector('.field').addEventListener('click', (event) => {
+            const id = event.target.dataset.id;
+            if (id) {
+                handler(id);
+            }
+        });
     }
-
-    // updateHtmlForList() {
-    //     const tasklist = this.html.querySelector('#tasklist');
-    //     tasklist.innerHTML = '';
-
-    //     const data = this.model.get();
-    //     for (const key in data) {
-    //         tasklist.append(this.getHtmlForTask(key, data[key]));
-    //     }
-    // }
-
-    // getHtmlForTask(id, name) {
-    //     const liElement = document.createElement('li');
-    //     liElement.innerHTML = `
-    //         <input id='${id}' type='checkbox' />
-    //         <label for='${id}'>${name}</label>
-    //     `;
-
-    //     if (this.deleteHandler !== null) {
-    //         liElement.querySelector('input').addEventListener('click', () => {
-    //             this.deleteHandler(id);
-    //         });
-    //     }
-
-    //     return liElement;
-    // }
-
-    // addCreateTaskHandler(handler) {
-    //     this.html.querySelector('#submittask').addEventListener('click', () => {
-    //         const taskInput = this.html.querySelector('#taskinput');
-    //         const newTaskTitle = taskInput.value;
-    //         taskInput.value = '';
-    //         handler(newTaskTitle);
-    //     });
-    // }
-
-    // addCheckedHandler(handler) {
-    //     this.deleteHandler = handler;
-    // }
 }

@@ -31,10 +31,7 @@
     align-items: center;
     justify-content: center;
 
-    background-color: gray;
-    border: 1px solid rgb(88, 88, 88);
-
-    cursor: pointer;
+    background-color: transparent;
 
     user-select: none;
 }
