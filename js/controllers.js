@@ -20,8 +20,11 @@ export class MineSweeperController {
         this.view = new MineSweeperView(this.model);
 
         // bind handlers
-        this.view.bindClick((id) => {
-            this.model.clickHandler(id);
+        this.view.bindLeftClick((id) => {
+            this.model.leftClickHandler(id);
+        });
+        this.view.bindRightClick((id) => {
+            this.model.rightClickHandler(id);
         });
     }
 }

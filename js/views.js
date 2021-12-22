@@ -23,7 +23,7 @@ export class MineSweeperView {
     }
 
     getCellElement(cell) {
-        const { id, number, isOpen, isMine } = cell;
+        const { id, number, isOpen, isMine, isFlag } = cell;
 
         let classNames = ['cell'],
             textContent;
@@ -34,6 +34,9 @@ export class MineSweeperView {
 
         if (!isOpen) {
             classNames.push('hidden');
+            if (isFlag) {
+                classNames.push('flag');
+            }
         } else if (isMine) {
             classNames.push('mine');
         }
@@ -44,6 +47,9 @@ export class MineSweeperView {
             attributes: { 'data-id': id },
             textContent,
         });
+
+        // remove context menu
+        cellElement.oncontextmenu = () => false;
 
         return cellElement;
     }
@@ -72,12 +78,29 @@ export class MineSweeperView {
         }
     }
 
-    bindClick(handler) {
-        this.html.querySelector('.field').addEventListener('click', (event) => {
-            const id = event.target.dataset.id;
-            if (id) {
-                handler(id);
-            }
-        });
+    bindLeftClick(handler) {
+        this.html
+            .querySelector('.field')
+            .addEventListener('mousedown', (event) => {
+                if (event.button === 0) {
+                    const id = event.target.dataset.id;
+                    if (id) {
+                        handler(id);
+                    }
+                }
+            });
+    }
+
+    bindRightClick(handler) {
+        this.html
+            .querySelector('.field')
+            .addEventListener('mousedown', (event) => {
+                if (event.button === 2) {
+                    const id = event.target.dataset.id;
+                    if (id) {
+                        handler(id);
+                    }
+                }
+            });
     }
 }

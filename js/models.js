@@ -5,6 +5,8 @@ export class MineSweeperModel {
         this.options = options;
 
         this.matrix = this.#createMatrix();
+
+        this.isFirstClick = true;
     }
 
     getMatrix() {
@@ -13,6 +15,51 @@ export class MineSweeperModel {
 
     getOptions() {
         return this.options;
+    }
+
+    // model handlers
+    leftClickHandler(id) {
+        // find current cell
+        let currentCell = null;
+        this.#forAllCells((cell) => {
+            if (cell.id === id) {
+                currentCell = cell;
+            }
+        });
+
+        // handle first click
+        if (this.isFirstClick) {
+            const cellsToNotMine = [
+                currentCell,
+                ...this.#getCellsAround(currentCell.y, currentCell.x),
+            ];
+            this.#mineMatrix(cellsToNotMine);
+
+            this.isFirstClick = false;
+        }
+
+        this.#openChunck(currentCell);
+
+        if (!(currentCell.isMine || currentCell.isFlag)) {
+            customEvents.dispatchEvent('updatefield');
+        }
+    }
+
+    rightClickHandler(id) {
+        for (let i = 0; i < this.matrix.length; i++) {
+            for (let j = 0; j < this.matrix[i].length; j++) {
+                const cell = this.matrix[i][j];
+                if (cell.id === id) {
+                    if (!cell.isOpen) {
+                        cell.isFlag = !cell.isFlag;
+                    }
+
+                    customEvents.dispatchEvent('updatefield');
+
+                    break;
+                }
+            }
+        }
     }
 
     #createMatrix() {
@@ -31,6 +78,7 @@ export class MineSweeperModel {
                     number: 0,
                     isOpen: false,
                     isMine: false,
+                    isFlag: false,
                 };
 
                 row.push(cell);
@@ -40,31 +88,44 @@ export class MineSweeperModel {
             matrix.push(row);
         }
 
-        // mine matrix
-        const numbersOfCellsWithMine = [];
-        for (let i = 0; i < bombsCount; i++) {
-            let randomInt = randomInteger(0, rowsCount * columnsCount - 1);
-            while (numbersOfCellsWithMine.includes(randomInt)) {
-                randomInt = randomInteger(0, rowsCount * columnsCount - 1);
-            }
-            numbersOfCellsWithMine.push(randomInt);
-        }
+        return matrix;
+    }
 
-        let numberOfCell = 0;
+    #mineMatrix(cellsToNotMine) {
+        const { rowsCount, columnsCount, bombsCount } = this.options;
+
+        const minedCells = [];
+        for (let i = 0; i < bombsCount; i++) {
+            let randomY = randomInteger(0, rowsCount - 1);
+            let randomX = randomInteger(0, columnsCount - 1);
+            let randomCell = this.matrix[randomY][randomX];
+            while (
+                minedCells.includes(randomCell) ||
+                cellsToNotMine.includes(randomCell)
+            ) {
+                randomY = randomInteger(0, rowsCount - 1);
+                randomX = randomInteger(0, columnsCount - 1);
+                randomCell = this.matrix[randomY][randomX];
+            }
+
+            minedCells.push(randomCell);
+
+            randomCell.isMine = true;
+
+            this.#getCellsAround(randomCell.y, randomCell.x).forEach((cell) => {
+                cell.number += 1;
+            });
+        }
+    }
+
+    #forAllCells(callback) {
+        const { matrix } = this;
+
         for (let y = 0; y < matrix.length; y++) {
             for (let x = 0; x < matrix[y].length; x++) {
-                if (numbersOfCellsWithMine.includes(numberOfCell)) {
-                    const cellsAround = this.#getCellsAround(y, x, matrix);
-
-                    cellsAround.forEach((cell) => (cell.number += 1));
-
-                    matrix[y][x].isMine = true;
-                }
-                numberOfCell++;
+                callback(matrix[y][x]);
             }
         }
-
-        return matrix;
     }
 
     #getCellsAround(y, x, matrix = this.matrix) {
@@ -85,18 +146,15 @@ export class MineSweeperModel {
         return cellsAround;
     }
 
-    // model handlers
-    clickHandler(id) {
-        for (let i = 0; i < this.matrix.length; i++) {
-            for (let j = 0; j < this.matrix[i].length; j++) {
-                const cell = this.matrix[i][j];
-                if (cell.id === id) {
-                    cell.isOpen = true;
+    #openChunck(cell) {
+        if (!cell.isMine && !cell.isFlag && !cell.isOpen) {
+            cell.isOpen = true;
 
-                    customEvents.dispatchEvent('updatefield');
-
-                    break;
-                }
+            if (cell.number === 0) {
+                const cellsAround = this.#getCellsAround(cell.y, cell.x);
+                cellsAround.forEach((item) => {
+                    this.#openChunck(item);
+                });
             }
         }
     }
