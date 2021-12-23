@@ -1,5 +1,6 @@
 import { MineSweeperModel } from './models';
 import { MineSweeperView } from './views';
+import { createElement, customEvents } from './utils';
 
 export class MineSweeperController {
     constructor(options) {
@@ -13,6 +14,20 @@ export class MineSweeperController {
 
     getView() {
         return this.view;
+    }
+
+    getBombsNumberElement() {
+        const bombsNumber = this.model.getBombsNumber();
+        const bombsNumberElement = createElement({
+            tagName: 'span',
+            textContent: bombsNumber,
+        });
+
+        customEvents.addEventListener('updatefield', () => {
+            bombsNumberElement.textContent = this.model.getBombsNumber();
+        });
+
+        return bombsNumberElement;
     }
 
     #init() {

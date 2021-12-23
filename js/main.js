@@ -3,22 +3,14 @@ import '../style.css';
 import { MineSweeperController } from './controllers';
 
 const mineSweeper = new MineSweeperController({
-    rowsCount: 12,
-    columnsCount: 12,
-    bombsCount: 11,
+    rowsCount: 11,
+    columnsCount: 11,
+    bombsCount: 10,
 });
 
-const app = document.querySelector('#app');
+const app = document.querySelector('#app'),
+    header = app.querySelector('.header'),
+    container = app.querySelector('.container');
 
-const container = document.createElement('div');
-container.classList.add('container');
-
+header.append(mineSweeper.getBombsNumberElement());
 container.append(mineSweeper.getView().getHtml());
-
-app.append(container);
-
-// const mineSweeper = new MineSweeper(containerElement, {
-// rowsCount: 12,
-// columnsCount: 12,
-// bombsCount: 11,
-// });

@@ -17,6 +17,17 @@ export class MineSweeperModel {
         return this.options;
     }
 
+    getBombsNumber() {
+        let flagsCount = 0;
+        this.#forAllCells((cell) => {
+            if (cell.isFlag) {
+                flagsCount += 1;
+            }
+        });
+
+        return this.options.bombsCount - flagsCount;
+    }
+
     // model handlers
     leftClickHandler(id) {
         // find current cell
@@ -63,7 +74,7 @@ export class MineSweeperModel {
     }
 
     #createMatrix() {
-        const { rowsCount, columnsCount, bombsCount } = this.options;
+        const { rowsCount, columnsCount } = this.options;
         const matrix = [];
 
         // generate matrix

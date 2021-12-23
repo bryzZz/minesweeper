@@ -11,7 +11,10 @@ export class MineSweeperView {
     }
 
     #init() {
-        this.html = document.createElement('div');
+        this.html = createElement({
+            tagName: 'div',
+            className: 'field-wrapper',
+        });
         this.html.innerHTML = '<div class="field"></div>';
         this.updateHtml();
 
