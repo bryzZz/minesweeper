@@ -3,8 +3,8 @@ import '../style.css';
 import { MineSweeperController } from './controllers';
 
 const mineSweeper = new MineSweeperController({
-    rowsCount: 11,
-    columnsCount: 11,
+    rowsCount: 10,
+    columnsCount: 10,
     bombsCount: 10,
 });
 
