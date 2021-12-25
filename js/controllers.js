@@ -17,15 +17,15 @@ export class MineSweeperController {
     }
 
     getBombsNumberElement() {
-        // const bombsNumber = this.model.getBombsNumber();
-        // const bombsNumberElement = createElement({
-        //     tagName: 'span',
-        //     textContent: bombsNumber,
-        // });
-        // customEvents.addEventListener('updatefield', () => {
-        //     bombsNumberElement.textContent = this.model.getBombsNumber();
-        // });
-        // return bombsNumberElement;
+        const bombsNumber = this.model.getBombsNumber();
+        const bombsNumberElement = createElement({
+            tagName: 'span',
+            textContent: bombsNumber,
+        });
+        customEvents.addEventListener('updatefield', () => {
+            bombsNumberElement.textContent = this.model.getBombsNumber();
+        });
+        return bombsNumberElement;
     }
 
     #init() {

@@ -1,54 +1,9 @@
 import { customEvents, createElement } from './utils';
 
-function draw(canvas, options) {
-    const { rowsCount, columnsCount } = options;
-
-    const DPI = 2;
-    const CELL_SIZE = 50;
-    const WIDTH = CELL_SIZE * columnsCount;
-    const HEIGHT = CELL_SIZE * rowsCount;
-    const DPI_CELL_SIZE = CELL_SIZE * DPI;
-    const DPI_WIDTH = WIDTH * DPI;
-    const DPI_HEIGHT = HEIGHT * DPI;
-
-    const ctx = canvas.getContext('2d');
-    // set Element sizes
-    canvas.style.width = WIDTH + 'px';
-    canvas.style.height = HEIGHT + 'px';
-
-    // set Canvas sizes
-    canvas.width = DPI_WIDTH;
-    canvas.height = DPI_HEIGHT;
-
-    ctx.beginPath();
-    ctx.strokeStyle = '#fff';
-
-    // horizontal lines
-    for (let i = 1; i < rowsCount; i++) {
-        const y = DPI_CELL_SIZE * i,
-            x = DPI_WIDTH;
-        ctx.moveTo(0, y);
-        ctx.lineTo(x, y);
-    }
-
-    // vertical lines
-    for (let i = 1; i < columnsCount; i++) {
-        const y = DPI_HEIGHT,
-            x = DPI_CELL_SIZE * i;
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, y);
-    }
-
-    ctx.stroke();
-    ctx.closePath();
-}
-
 export class MineSweeperView {
     constructor(model) {
         this.model = model;
         this.html = null;
-
-        this.canvasOptions = null;
 
         this.styles = {
             colors: {
@@ -65,6 +20,10 @@ export class MineSweeperView {
         };
 
         this.#init();
+    }
+
+    getHtml() {
+        return this.html;
     }
 
     bindLeftClick(handler) {
@@ -95,11 +54,21 @@ export class MineSweeperView {
         });
     }
 
-    getHtml() {
-        return this.html;
+    #init() {
+        this.html = createElement({ tagName: 'canvas' });
+        // remove context menu
+        this.html.oncontextmenu = () => false;
+
+        this.#updateHtml();
+
+        customEvents.registerEvent('updatefield');
+        customEvents.addEventListener(
+            'updatefield',
+            this.#updateHtml.bind(this)
+        );
     }
 
-    updateHtml() {
+    #updateHtml() {
         console.log('update');
 
         const matrix = this.model.getMatrix();
@@ -110,42 +79,26 @@ export class MineSweeperView {
         const HEIGHT = CELL_SIZE * rowsCount;
         const DPI = 2;
         const DPI_CELL_SIZE = CELL_SIZE * DPI;
-        const DPI_WIDTH = WIDTH * DPI;
-        const DPI_HEIGHT = HEIGHT * DPI;
+        const OFFSET = DPI_CELL_SIZE / 10;
 
         const ctx = this.html.getContext('2d');
 
         this.#setSizes(WIDTH, HEIGHT, DPI);
+        ctx.clearRect(0, 0, WIDTH, HEIGHT); // clear canvas
+        this.#addCursorEvents();
 
-        // clear canvas
-        ctx.clearRect(0, 0, WIDTH, HEIGHT);
+        ctx.beginPath();
 
         this.#drawLines(
             ctx,
             rowsCount,
             columnsCount,
             DPI_CELL_SIZE,
-            DPI_WIDTH,
-            DPI_HEIGHT
+            OFFSET * 2
         );
+        this.#drawCells(ctx, matrix, DPI_CELL_SIZE, OFFSET);
 
-        this.#drawCells(ctx, matrix);
-
-        this.#addCursorEvents();
-    }
-
-    #init() {
-        this.html = createElement({ tagName: 'canvas' });
-        // remove context menu
-        this.html.oncontextmenu = () => false;
-
-        this.updateHtml();
-
-        customEvents.registerEvent('updatefield');
-        customEvents.addEventListener(
-            'updatefield',
-            this.updateHtml.bind(this)
-        );
+        ctx.closePath();
     }
 
     #setSizes(width, height, dpi) {
@@ -157,89 +110,105 @@ export class MineSweeperView {
         this.html.height = height * dpi;
     }
 
-    #drawLines(ctx, rowsCount, columnsCount, cellSize, width, height) {
-        ctx.beginPath();
+    #drawLines(ctx, rowsCount, columnsCount, cellSize, offset) {
         ctx.strokeStyle = this.styles.colors.stroke;
+
+        const lineLength = cellSize - offset * 2;
 
         // horizontal
         for (let i = 1; i < rowsCount; i++) {
             const y = cellSize * i;
-            // x = width;
 
-            const offset = 20;
             for (let j = 0; j < columnsCount; j++) {
                 const x = offset + j * cellSize;
                 ctx.moveTo(x, y);
-                ctx.lineTo(x + (cellSize - offset * 2), y);
+                ctx.lineTo(x + lineLength, y);
             }
-            // ctx.moveTo(0, y);
-            // ctx.lineTo(x, y);
         }
 
         // vertical
         for (let i = 1; i < columnsCount; i++) {
-            // const y = height,
             const x = cellSize * i;
 
-            const offset = 20;
             for (let j = 0; j < rowsCount; j++) {
                 const y = offset + j * cellSize;
                 ctx.moveTo(x, y);
-                ctx.lineTo(x, y + (cellSize - offset * 2));
+                ctx.lineTo(x, y + lineLength);
             }
-            // ctx.moveTo(x, 0);
-            // ctx.lineTo(x, y);
         }
 
         ctx.stroke();
-        ctx.closePath();
     }
 
-    #drawCells(ctx, matrix) {
-        ctx.beginPath();
+    #drawCells(ctx, matrix, cellSize, offset) {
+        const { main, flag, mine } = this.styles.colors;
 
         for (let i = 0; i < matrix.length; i++) {
             for (let j = 0; j < matrix[i].length; j++) {
                 const { isOpen, isFlag, isMine, number } = matrix[i][j];
 
-                let textContent = '';
-                ctx.fillStyle = 'transparent';
-
-                if (number > 0 && isOpen && !isMine) {
-                    textContent = number;
-                }
-
+                let color = 'transparent';
                 if (!isOpen) {
-                    ctx.fillStyle = '#e77d26';
+                    color = main;
                     if (isFlag) {
-                        ctx.fillStyle = '#646464';
+                        color = flag;
                     }
                 } else if (isMine) {
-                    ctx.fillStyle = 'tomato';
+                    color = mine;
                 }
-
-                const offset = 10;
-                const cellSize = 100;
 
                 const y = offset + i * cellSize;
                 const x = offset + j * cellSize;
                 const size = cellSize - offset * 2;
+                const isTextVisible = number > 0 && isOpen && !isMine;
+                let textContent = isTextVisible ? number : '';
 
-                ctx.fillRect(x, y, size, size);
+                ctx.beginPath();
+                this.#drawCell(ctx, x, y, size, 5, color, textContent);
+                ctx.closePath();
+            }
+        }
+    }
 
-                ctx.fillStyle = this.styles.colors.text;
-                ctx.font = `${this.styles.font.size}px ${this.styles.font.family}`;
-
-                ctx.fillText(
-                    textContent,
-                    x + cellSize / 2 - offset * 2.3,
-                    y + cellSize / 2 + offset * 0.7
-                );
+    #drawCell(ctx, x, y, size, radius = 5, color, text) {
+        if (typeof radius === 'number') {
+            radius = { tl: radius, tr: radius, br: radius, bl: radius };
+        } else {
+            const defaultRadius = { tl: 0, tr: 0, br: 0, bl: 0 };
+            for (const side in defaultRadius) {
+                radius[side] = radius[side] || defaultRadius[side];
             }
         }
 
-        ctx.stroke();
-        ctx.closePath();
+        ctx.moveTo(x + radius.tl, y);
+        ctx.lineTo(x + size - radius.tr, y);
+        ctx.quadraticCurveTo(x + size, y, x + size, y + radius.tr);
+        ctx.lineTo(x + size, y + size - radius.br);
+        ctx.quadraticCurveTo(
+            x + size,
+            y + size,
+            x + size - radius.br,
+            y + size
+        );
+        ctx.lineTo(x + radius.bl, y + size);
+        ctx.quadraticCurveTo(x, y + size, x, y + size - radius.bl);
+        ctx.lineTo(x, y + radius.tl);
+        ctx.quadraticCurveTo(x, y, x + radius.tl, y);
+
+        ctx.fillStyle = color;
+        ctx.fill();
+
+        if (text) {
+            const {
+                colors: { text: textColor },
+                font: { size: fontSize, family },
+            } = this.styles;
+
+            ctx.fillStyle = textColor;
+            ctx.font = `${fontSize}px ${family}`;
+
+            ctx.fillText(text, x + size / 2.9, y + size / 1.5);
+        }
     }
 
     #findCellByCoords(y, x) {
@@ -258,10 +227,12 @@ export class MineSweeperView {
 
             const cell = this.#findCellByCoords(y, x);
 
-            if (!cell.isOpen) {
-                this.html.style.cursor = 'pointer';
-            } else {
-                this.html.style.cursor = 'default';
+            if (cell) {
+                if (!cell.isOpen) {
+                    this.html.style.cursor = 'pointer';
+                } else {
+                    this.html.style.cursor = 'default';
+                }
             }
         });
     }

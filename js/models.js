@@ -49,11 +49,17 @@ export class MineSweeperModel {
             this.isFirstClick = false;
         }
 
-        this.#openChunck(currentCell);
+        const { isOpen, isMine, isFlag, number } = currentCell;
 
-        if (!(currentCell.isMine || currentCell.isFlag)) {
-            customEvents.dispatchEvent('updatefield');
+        if (!isOpen && !isFlag && !isMine) {
+            this.#openChunck(currentCell);
+        } else if (isOpen && !isFlag && !isMine && number > 0) {
+            this.#openAround(currentCell);
+        } else if (!isOpen && !isFlag && isMine) {
+            console.log('mine');
         }
+
+        customEvents.dispatchEvent('updatefield');
     }
 
     rightClickHandler(id) {
@@ -167,6 +173,20 @@ export class MineSweeperModel {
                     this.#openChunck(item);
                 });
             }
+        }
+    }
+
+    #openAround(cell) {
+        const cellsAround = this.#getCellsAround(cell.y, cell.x);
+        let flagsAroundCount = cellsAround.reduce(
+            (accum, { isFlag }) => (isFlag ? ++accum : accum),
+            0
+        );
+
+        if (cell.number === flagsAroundCount) {
+            cellsAround.forEach((cell) => {
+                this.#openChunck(cell);
+            });
         }
     }
 }
