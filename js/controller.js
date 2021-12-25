@@ -1,5 +1,5 @@
-import { MineSweeperModel } from './models';
-import { MineSweeperView } from './canvas-view';
+import { MineSweeperModel } from './model';
+import { MineSweeperView } from './view';
 import { createElement, customEvents } from './utils';
 
 export class MineSweeperController {

@@ -1,6 +1,5 @@
 import '../style.css';
-// import MineSweeper from './MineSweeper';
-import { MineSweeperController } from './controllers';
+import { MineSweeperController } from './controller';
 
 const mineSweeper = new MineSweeperController({
     rowsCount: 10,
