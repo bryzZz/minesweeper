@@ -52,14 +52,18 @@ export class MineSweeperModel {
         const { isOpen, isMine, isFlag, number } = currentCell;
 
         if (!isOpen && !isFlag && !isMine) {
-            this.#openChunck(currentCell);
-        } else if (isOpen && !isFlag && !isMine && number > 0) {
-            this.#openAround(currentCell);
-        } else if (!isOpen && !isFlag && isMine) {
-            console.log('mine');
-        }
+            this.#open(currentCell);
 
-        customEvents.dispatchEvent('updatefield');
+            customEvents.dispatchEvent('updatefield');
+        } else if (isOpen && number > 0) {
+            this.#openAround(currentCell);
+
+            customEvents.dispatchEvent('updatefield');
+        } else if (!isOpen && !isFlag && isMine) {
+            this.#lose();
+
+            customEvents.dispatchEvent('updatefield');
+        }
     }
 
     rightClickHandler(id) {
@@ -163,16 +167,18 @@ export class MineSweeperModel {
         return cellsAround;
     }
 
-    #openChunck(cell) {
+    #open(cell) {
         if (!cell.isMine && !cell.isFlag && !cell.isOpen) {
             cell.isOpen = true;
 
             if (cell.number === 0) {
                 const cellsAround = this.#getCellsAround(cell.y, cell.x);
                 cellsAround.forEach((item) => {
-                    this.#openChunck(item);
+                    this.#open(item);
                 });
             }
+        } else if (cell.isMine) {
+            this.#lose();
         }
     }
 
@@ -185,8 +191,14 @@ export class MineSweeperModel {
 
         if (cell.number === flagsAroundCount) {
             cellsAround.forEach((cell) => {
-                this.#openChunck(cell);
+                this.#open(cell);
             });
         }
+    }
+
+    #lose() {
+        this.#forAllCells((cell) => {
+            cell.isOpen = true;
+        });
     }
 }

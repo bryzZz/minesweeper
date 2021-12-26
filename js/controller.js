@@ -16,7 +16,7 @@ export class MineSweeperController {
         return this.view;
     }
 
-    getBombsNumberElement() {
+    getMinesCounter() {
         const bombsNumber = this.model.getBombsNumber();
         const bombsNumberElement = createElement({
             tagName: 'span',

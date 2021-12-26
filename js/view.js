@@ -148,6 +148,7 @@ export class MineSweeperView {
                 const { isOpen, isFlag, isMine, number } = matrix[i][j];
 
                 let color = 'transparent';
+                let img = null;
                 if (!isOpen) {
                     color = main;
                     if (isFlag) {
@@ -155,6 +156,8 @@ export class MineSweeperView {
                     }
                 } else if (isMine) {
                     color = mine;
+
+                    img = '../Group 4.svg';
                 }
 
                 const y = offset + i * cellSize;
@@ -164,13 +167,13 @@ export class MineSweeperView {
                 let textContent = isTextVisible ? number : '';
 
                 ctx.beginPath();
-                this.#drawCell(ctx, x, y, size, 5, color, textContent);
+                this.#drawCell(ctx, x, y, size, 5, color, textContent, img);
                 ctx.closePath();
             }
         }
     }
 
-    #drawCell(ctx, x, y, size, radius = 5, color, text) {
+    #drawCell(ctx, x, y, size, radius = 5, color, text, img) {
         if (typeof radius === 'number') {
             radius = { tl: radius, tr: radius, br: radius, bl: radius };
         } else {

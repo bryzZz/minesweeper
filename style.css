@@ -31,7 +31,16 @@ body {
     height: 92%;
     width: 100%;
 
+    padding: 5vh 5vh 3vh 2vh;
+
+    /* -ms-overflow-style: none; IE 10+ */
+    /* scrollbar-width: none; Firefox */
+
     overflow: auto;
 
     background-color: #333333;
+}
+
+.no-pointer-events {
+    pointer-events: none;
 }
