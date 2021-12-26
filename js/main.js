@@ -110,7 +110,7 @@ const minesCounterElement = createElement({
 });
 
 mineSweeper.onMinesCounterChange((minesCount) => {
-    minesCounterElement.textContent = 'Mines left: ' + minesCount;
+    minesCounterElement.innerHTML = `Mines left: <span>${minesCount}</span>`;
 });
 
 header.append(minesCounterElement);
