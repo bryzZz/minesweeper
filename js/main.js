@@ -1,26 +1,24 @@
 import '../style.css';
 import { MineSweeperController } from './controller';
+import { createElement } from './utils';
 
 const mineSweeper = new MineSweeperController({
     rowsCount: 10,
     columnsCount: 10,
-    bombsCount: 9,
+    minesCount: 9,
 });
 
 const app = document.querySelector('#app'),
     header = app.querySelector('.header'),
     container = app.querySelector('.container'),
-    view = mineSweeper.getView().getHtml(),
-    minesCounter = mineSweeper.getMinesCounter();
+    view = mineSweeper.getView().getHtml();
 
-header.append(minesCounter);
 container.append(view);
 
 // Drag To Scroll
+const removeDragToScroll = addDragToScroll(container);
 
-dragToScroll(container);
-
-function dragToScroll(element) {
+function addDragToScroll(element) {
     let pos = { top: 0, left: 0, x: 0, y: 0 },
         mousePressed = false,
         spacePressed = false;
@@ -95,4 +93,31 @@ function dragToScroll(element) {
             view.classList.remove('no-pointer-events');
         }
     }
+
+    function removeEventsHandler() {
+        document.removeEventListener('keydown', keyDownHandler);
+        document.removeEventListener('keyup', keyUpHandler);
+        element.removeEventListener('mousedown', mouseDownHandler);
+    }
+
+    return removeEventsHandler;
+}
+
+// Handle mines counter
+const minesCounterElement = createElement({
+    tagName: 'div',
+    className: 'mines-counter',
+});
+
+mineSweeper.onMinesCounterChange((minesCount) => {
+    minesCounterElement.textContent = 'Mines left: ' + minesCount;
+});
+
+header.append(minesCounterElement);
+
+// Handle lose
+mineSweeper.onLose(loseHandler);
+
+function loseHandler() {
+    removeDragToScroll();
 }

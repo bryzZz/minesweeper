@@ -17,7 +17,7 @@ export class MineSweeperModel {
         return this.options;
     }
 
-    getBombsNumber() {
+    getMinesNumber() {
         let flagsCount = 0;
         this.#forAllCells((cell) => {
             if (cell.isFlag) {
@@ -25,7 +25,7 @@ export class MineSweeperModel {
             }
         });
 
-        return this.options.bombsCount - flagsCount;
+        return this.options.minesCount - flagsCount;
     }
 
     // model handlers
@@ -113,10 +113,10 @@ export class MineSweeperModel {
     }
 
     #mineMatrix(cellsToNotMine) {
-        const { rowsCount, columnsCount, bombsCount } = this.options;
+        const { rowsCount, columnsCount, minesCount } = this.options;
 
         const minedCells = [];
-        for (let i = 0; i < bombsCount; i++) {
+        for (let i = 0; i < minesCount; i++) {
             let randomY = randomInteger(0, rowsCount - 1);
             let randomX = randomInteger(0, columnsCount - 1);
             let randomCell = this.matrix[randomY][randomX];
@@ -191,7 +191,9 @@ export class MineSweeperModel {
 
         if (cell.number === flagsAroundCount) {
             cellsAround.forEach((cell) => {
-                this.#open(cell);
+                if (!cell.isFlag) {
+                    this.#open(cell);
+                }
             });
         }
     }
@@ -200,5 +202,7 @@ export class MineSweeperModel {
         this.#forAllCells((cell) => {
             cell.isOpen = true;
         });
+
+        customEvents.dispatchEvent('lose');
     }
 }

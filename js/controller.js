@@ -1,6 +1,6 @@
 import { MineSweeperModel } from './model';
 import { MineSweeperView } from './view';
-import { createElement, customEvents } from './utils';
+import { customEvents } from './utils';
 
 export class MineSweeperController {
     constructor(options) {
@@ -16,16 +16,18 @@ export class MineSweeperController {
         return this.view;
     }
 
-    getMinesCounter() {
-        const bombsNumber = this.model.getBombsNumber();
-        const bombsNumberElement = createElement({
-            tagName: 'span',
-            textContent: bombsNumber,
-        });
+    onLose(callback) {
+        customEvents.addEventListener('lose', callback);
+    }
+
+    onMinesCounterChange(callback) {
+        let minesNumber = this.model.getMinesNumber();
+        callback(minesNumber);
+
         customEvents.addEventListener('updatefield', () => {
-            bombsNumberElement.textContent = this.model.getBombsNumber();
+            minesNumber = this.model.getMinesNumber();
+            callback(minesNumber);
         });
-        return bombsNumberElement;
     }
 
     #init() {
@@ -39,5 +41,8 @@ export class MineSweeperController {
         this.view.bindRightClick((id) => {
             this.model.rightClickHandler(id);
         });
+
+        // register lose event
+        customEvents.registerEvent('lose');
     }
 }
