@@ -55,7 +55,10 @@ export class MineSweeperView {
     }
 
     #init() {
-        this.html = createElement({ tagName: 'canvas' });
+        this.html = createElement({
+            tagName: 'canvas',
+            className: 'minesweeper-field',
+        });
         // remove context menu
         this.html.oncontextmenu = () => false;
 

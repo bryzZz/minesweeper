@@ -39,11 +39,13 @@
     height: 92%;
     width: 100%;
 
-    padding: 5vh 5vh 3vh 2vh;
-
     overflow: auto;
 
     background-color: #333333;
+}
+
+.minesweeper-field {
+    margin: 0 20px;
 }
 
 .lose-screen {

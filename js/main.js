@@ -42,6 +42,8 @@ start(container);
 const removeDragToScroll = addDragToScroll(container);
 
 function addDragToScroll(element) {
+    const view = mineSweeper.getView().getHtml();
+
     let pos = { top: 0, left: 0, x: 0, y: 0 },
         mousePressed = false,
         spacePressed = false;
