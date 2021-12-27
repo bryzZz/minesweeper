@@ -18,7 +18,11 @@ class Reactor {
         this.events = {};
     }
     registerEvent(eventName) {
-        var event = new Event(eventName);
+        if (eventName in this.events) {
+            delete this.events[eventName];
+        }
+
+        const event = new Event(eventName);
         this.events[eventName] = event;
     }
     dispatchEvent(eventName, eventArgs) {

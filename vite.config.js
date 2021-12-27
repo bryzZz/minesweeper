@@ -1,5 +1,5 @@
 export default {
-    // server: {
-    //     host: true,
-    // },
+    server: {
+        host: true,
+    },
 };

@@ -9,28 +9,10 @@ export class MineSweeperController {
         this.model = null;
         this.view = null;
 
-        this.#init();
+        this.loseCallback = null;
     }
 
-    getView() {
-        return this.view;
-    }
-
-    onLose(callback) {
-        customEvents.addEventListener('lose', callback);
-    }
-
-    onMinesCounterChange(callback) {
-        let minesNumber = this.model.getMinesNumber();
-        callback(minesNumber);
-
-        customEvents.addEventListener('updatefield', () => {
-            minesNumber = this.model.getMinesNumber();
-            callback(minesNumber);
-        });
-    }
-
-    #init() {
+    start() {
         this.model = new MineSweeperModel(this.options);
         this.view = new MineSweeperView(this.model);
 
@@ -44,5 +26,26 @@ export class MineSweeperController {
 
         // register lose event
         customEvents.registerEvent('lose');
+        customEvents.addEventListener('lose', () => {
+            this.loseCallback();
+        });
+    }
+
+    getView() {
+        return this.view;
+    }
+
+    onLose(callback) {
+        this.loseCallback = callback;
+    }
+
+    onMinesCounterChange(callback) {
+        let minesNumber = this.model.getMinesNumber();
+        callback(minesNumber);
+
+        customEvents.addEventListener('updatefield', () => {
+            minesNumber = this.model.getMinesNumber();
+            callback(minesNumber);
+        });
     }
 }

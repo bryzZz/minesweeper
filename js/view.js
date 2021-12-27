@@ -69,8 +69,6 @@ export class MineSweeperView {
     }
 
     #updateHtml() {
-        console.log('update');
-
         const matrix = this.model.getMatrix();
         const { rowsCount, columnsCount } = this.model.getOptions();
 

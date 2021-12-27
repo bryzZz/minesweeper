@@ -2,7 +2,7 @@ import '../style.css';
 import { MineSweeperController } from './controller';
 import { createElement } from './utils';
 
-const mineSweeper = new MineSweeperController({
+let mineSweeper = new MineSweeperController({
     rowsCount: 10,
     columnsCount: 10,
     minesCount: 9,
@@ -10,10 +10,33 @@ const mineSweeper = new MineSweeperController({
 
 const app = document.querySelector('#app'),
     header = app.querySelector('.header'),
-    container = app.querySelector('.container'),
-    view = mineSweeper.getView().getHtml();
+    container = app.querySelector('.container');
 
-container.append(view);
+// start and restart game function
+function start(container) {
+    container.innerHTML = '';
+    mineSweeper.start();
+
+    const view = mineSweeper.getView().getHtml();
+
+    container.append(view);
+
+    // Handle mines counter
+    header.querySelector('.mines-counter')?.remove();
+
+    const minesCounterElement = createElement({
+        tagName: 'div',
+        className: 'mines-counter',
+    });
+
+    mineSweeper.onMinesCounterChange((minesCount) => {
+        minesCounterElement.innerHTML = `Mines left: <span>${minesCount}</span>`;
+    });
+
+    header.append(minesCounterElement);
+}
+
+start(container);
 
 // Drag To Scroll
 const removeDragToScroll = addDragToScroll(container);
@@ -103,21 +126,32 @@ function addDragToScroll(element) {
     return removeEventsHandler;
 }
 
-// Handle mines counter
-const minesCounterElement = createElement({
-    tagName: 'div',
-    className: 'mines-counter',
-});
-
-mineSweeper.onMinesCounterChange((minesCount) => {
-    minesCounterElement.innerHTML = `Mines left: <span>${minesCount}</span>`;
-});
-
-header.append(minesCounterElement);
-
 // Handle lose
 mineSweeper.onLose(loseHandler);
 
 function loseHandler() {
     removeDragToScroll();
+
+    const loseScreenElement = createElement({
+        tagName: 'div',
+        className: 'lose-screen',
+    });
+
+    loseScreenElement.innerHTML = `
+        <div>You lose</div>
+        <div>Click any button to restart</div>
+    `;
+
+    const anyButtonPressHandler = [
+        () => {
+            start(container);
+
+            loseScreenElement.remove();
+        },
+        { once: true },
+    ];
+    loseScreenElement.addEventListener('click', ...anyButtonPressHandler);
+    document.addEventListener('keypress', ...anyButtonPressHandler);
+
+    container.append(loseScreenElement);
 }
