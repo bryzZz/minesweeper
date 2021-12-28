@@ -128,32 +128,34 @@ function addDragToScroll(element) {
     return removeEventsHandler;
 }
 
-// Handle lose
-mineSweeper.onLose(loseHandler);
+// Handle end
+mineSweeper.onWin(() => endHandler('You Win!', 'win'));
+mineSweeper.onLose(() => endHandler('You Lose', 'lose'));
 
-function loseHandler() {
+function endHandler(title, className) {
     removeDragToScroll();
 
-    const loseScreenElement = createElement({
+    const endScreenElement = createElement({
         tagName: 'div',
-        className: 'lose-screen',
+        className: ['end-screen', className],
     });
 
-    loseScreenElement.innerHTML = `
-        <div>You lose</div>
+    endScreenElement.innerHTML = `
+        <div>${title}</div>
         <div>Click any button to restart</div>
     `;
 
-    const anyButtonPressHandler = [
-        () => {
-            start(container);
+    const anyButtonPressHandler = () => {
+        start(container);
 
-            loseScreenElement.remove();
-        },
-        { once: true },
-    ];
-    loseScreenElement.addEventListener('click', ...anyButtonPressHandler);
-    document.addEventListener('keypress', ...anyButtonPressHandler);
+        endScreenElement.removeEventListener('click', anyButtonPressHandler);
+        document.removeEventListener('keypress', anyButtonPressHandler);
 
-    container.append(loseScreenElement);
+        endScreenElement.remove();
+    };
+
+    endScreenElement.addEventListener('click', anyButtonPressHandler);
+    document.addEventListener('keypress', anyButtonPressHandler);
+
+    container.append(endScreenElement);
 }

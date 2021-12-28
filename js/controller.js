@@ -10,6 +10,7 @@ export class MineSweeperController {
         this.view = null;
 
         this.loseCallback = null;
+        this.winCallback = null;
     }
 
     start() {
@@ -26,9 +27,9 @@ export class MineSweeperController {
 
         // register lose event
         customEvents.registerEvent('lose');
-        customEvents.addEventListener('lose', () => {
-            this.loseCallback();
-        });
+        customEvents.registerEvent('win');
+        customEvents.addEventListener('lose', () => this.loseCallback());
+        customEvents.addEventListener('win', () => this.winCallback());
     }
 
     getView() {
@@ -37,6 +38,10 @@ export class MineSweeperController {
 
     onLose(callback) {
         this.loseCallback = callback;
+    }
+
+    onWin(callback) {
+        this.winCallback = callback;
     }
 
     onMinesCounterChange(callback) {

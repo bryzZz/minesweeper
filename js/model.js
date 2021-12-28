@@ -50,6 +50,7 @@ export class MineSweeperModel {
         }
 
         const { isOpen, isMine, isFlag, number } = currentCell;
+        let isLose = false;
 
         if (!isOpen && !isFlag && !isMine) {
             this.#open(currentCell);
@@ -61,8 +62,13 @@ export class MineSweeperModel {
             customEvents.dispatchEvent('updatefield');
         } else if (!isOpen && !isFlag && isMine) {
             this.#lose();
+            isLose = true;
 
             customEvents.dispatchEvent('updatefield');
+        }
+
+        if (!isLose && this.#isWin()) {
+            this.#win();
         }
     }
 
@@ -198,11 +204,27 @@ export class MineSweeperModel {
         }
     }
 
+    #isWin() {
+        let res = true;
+
+        this.#forAllCells((cell) => {
+            if (!cell.isOpen && !cell.isMine) {
+                res = false;
+            }
+        });
+
+        return res;
+    }
+
     #lose() {
         this.#forAllCells((cell) => {
             cell.isOpen = true;
         });
 
         customEvents.dispatchEvent('lose');
+    }
+
+    #win() {
+        customEvents.dispatchEvent('win');
     }
 }
