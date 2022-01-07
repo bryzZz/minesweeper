@@ -54,6 +54,26 @@ export class MineSweeperView {
         });
     }
 
+    bindArrowsPress(handler) {
+        const arrowsKeys = ['ArrowUp', 'ArrowRight', 'ArrowDown', 'ArrowLeft'];
+
+        document.addEventListener('keydown', (event) => {
+            const key = event.code;
+
+            if (arrowsKeys.includes(key)) {
+                handler(key.slice(5).toLowerCase());
+            }
+        });
+    }
+
+    bindEnterAndSpacePress(handler) {
+        this.html.addEventListener('keydown', (event) => {
+            if (event.code === 'Enter') {
+                handler();
+            }
+        });
+    }
+
     #init() {
         this.html = createElement({
             tagName: 'canvas',
@@ -146,10 +166,11 @@ export class MineSweeperView {
 
         for (let i = 0; i < matrix.length; i++) {
             for (let j = 0; j < matrix[i].length; j++) {
-                const { isOpen, isFlag, isMine, number } = matrix[i][j];
+                const { isOpen, isFlag, isMine, isHighlighted, number } =
+                    matrix[i][j];
 
-                let color = 'transparent';
-                let img = null;
+                let color = 'transparent',
+                    img = null;
                 if (!isOpen) {
                     color = main;
                     if (isFlag) {
@@ -168,13 +189,23 @@ export class MineSweeperView {
                 let textContent = isTextVisible ? number : '';
 
                 ctx.beginPath();
-                this.#drawCell(ctx, x, y, size, 5, color, textContent, img);
+                this.#drawCell(
+                    ctx,
+                    x,
+                    y,
+                    size,
+                    5,
+                    color,
+                    textContent,
+                    img,
+                    isHighlighted
+                );
                 ctx.closePath();
             }
         }
     }
 
-    #drawCell(ctx, x, y, size, radius = 5, color, text, img) {
+    #drawCell(ctx, x, y, size, radius = 5, color, text, img, isHighlighted) {
         if (typeof radius === 'number') {
             radius = { tl: radius, tr: radius, br: radius, bl: radius };
         } else {
@@ -198,6 +229,17 @@ export class MineSweeperView {
         ctx.quadraticCurveTo(x, y + size, x, y + size - radius.bl);
         ctx.lineTo(x, y + radius.tl);
         ctx.quadraticCurveTo(x, y, x + radius.tl, y);
+
+        if (isHighlighted) {
+            ctx.strokeStyle = 'rgb(56, 56, 255)';
+            ctx.lineWidth = 10;
+            ctx.stroke();
+            // ctx.shadowColor = 'blue';
+            // ctx.shadowBlur = 10;
+        } else {
+            // ctx.shadowColor = 'blue';
+            // ctx.shadowBlur = 0;
+        }
 
         ctx.fillStyle = color;
         ctx.fill();

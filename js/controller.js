@@ -24,8 +24,14 @@ export class MineSweeperController {
         this.view.bindRightClick((id) => {
             this.model.rightClickHandler(id);
         });
+        this.view.bindArrowsPress((direction) => {
+            this.model.arrowsPressHandler(direction);
+        });
+        this.view.bindEnterAndSpacePress(() => {
+            this.model.enterAndSpacePressHandler();
+        });
 
-        // register lose event
+        // register lose and win events
         customEvents.registerEvent('lose');
         customEvents.registerEvent('win');
         customEvents.addEventListener('lose', () => this.loseCallback());
