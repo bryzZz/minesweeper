@@ -65,7 +65,7 @@ export class MineSweeperView {
 
 		this.drawOptions = Object.freeze({
 			colors: {
-				main: "#e77d26",
+				main: "red",
 				flag: "#646464",
 				mine: "tomato",
 				text: "#e5e5e5",
