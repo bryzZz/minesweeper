@@ -54,27 +54,8 @@ export class MineSweeperView {
         });
     }
 
-    bindArrowsPress(handler) {
-        const arrowsKeys = ['ArrowUp', 'ArrowRight', 'ArrowDown', 'ArrowLeft'];
-
-        document.addEventListener('keydown', (event) => {
-            const key = event.code;
-
-            if (arrowsKeys.includes(key)) {
-                handler(key.slice(5).toLowerCase());
-            }
-        });
-    }
-
-    bindEnterAndSpacePress(handler) {
-        this.html.addEventListener('keydown', (event) => {
-            if (event.code === 'Enter') {
-                handler();
-            }
-        });
-    }
-
     #init() {
+        // create view html element(canvas)
         this.html = createElement({
             tagName: 'canvas',
             className: 'minesweeper-field',
@@ -82,19 +63,8 @@ export class MineSweeperView {
         // remove context menu
         this.html.oncontextmenu = () => false;
 
-        this.#updateHtml();
-
-        customEvents.registerEvent('updatefield');
-        customEvents.addEventListener(
-            'updatefield',
-            this.#updateHtml.bind(this)
-        );
-    }
-
-    #updateHtml() {
-        const matrix = this.model.getMatrix();
+        // init sizes
         const { rowsCount, columnsCount } = this.model.getOptions();
-
         const CELL_SIZE = 50;
         const WIDTH = CELL_SIZE * columnsCount;
         const HEIGHT = CELL_SIZE * rowsCount;
@@ -102,24 +72,21 @@ export class MineSweeperView {
         const DPI_CELL_SIZE = CELL_SIZE * DPI;
         const OFFSET = DPI_CELL_SIZE / 10;
 
-        const ctx = this.html.getContext('2d');
-
+        // set html element and inner canvas sizes
         this.#setSizes(WIDTH, HEIGHT, DPI);
-        ctx.clearRect(0, 0, WIDTH, HEIGHT); // clear canvas
+
+        // first draw view
+        this.updateView(DPI_CELL_SIZE, OFFSET);
+
+        // add events to html element
         this.#addCursorEvents();
 
-        ctx.beginPath();
-
-        this.#drawLines(
-            ctx,
-            rowsCount,
-            columnsCount,
-            DPI_CELL_SIZE,
-            OFFSET * 2
+        // event to update
+        customEvents.registerEvent('updatefield');
+        customEvents.addEventListener(
+            'updatefield',
+            this.updateView.bind(this, DPI_CELL_SIZE, OFFSET)
         );
-        this.#drawCells(ctx, matrix, DPI_CELL_SIZE, OFFSET);
-
-        ctx.closePath();
     }
 
     #setSizes(width, height, dpi) {
@@ -129,6 +96,23 @@ export class MineSweeperView {
         // set Canvas inner size
         this.html.width = width * dpi;
         this.html.height = height * dpi;
+    }
+
+    updateView(cellSize, offset) {
+        const { rowsCount, columnsCount } = this.model.getOptions();
+        const matrix = this.model.getMatrix();
+        const ctx = this.html.getContext('2d');
+
+        // clear canvas
+        ctx.clearRect(0, 0, this.html.width, this.html.height);
+
+        // draw
+        ctx.beginPath();
+
+        this.#drawLines(ctx, rowsCount, columnsCount, cellSize, offset * 2);
+        this.#drawCells(ctx, matrix, cellSize, offset);
+
+        ctx.closePath();
     }
 
     #drawLines(ctx, rowsCount, columnsCount, cellSize, offset) {

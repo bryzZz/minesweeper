@@ -158,4 +158,5 @@ function endHandler(title, className) {
     document.addEventListener('keypress', anyButtonPressHandler);
 
     container.append(endScreenElement);
+    container.classList.toggle('overflow-hidden');
 }

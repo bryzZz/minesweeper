@@ -92,48 +92,6 @@ export class MineSweeperModel {
         }
     }
 
-    arrowsPressHandler(direction) {
-        const { rowsCount, columnsCount } = this.options;
-
-        if (this.highlightedCellCoords === null) {
-            this.highlightedCellCoords = { y: 0, x: 0 };
-        } else {
-            let { y, x } = this.highlightedCellCoords;
-            this.matrix[y][x].isHighlighted = false;
-
-            if (direction === 'left') {
-                x -= 1;
-            } else if (direction === 'right') {
-                x += 1;
-            } else if (direction === 'up') {
-                y -= 1;
-            } else if (direction === 'down') {
-                y += 1;
-            }
-
-            if (x < 0) {
-                x = columnsCount - 1;
-            } else if (x > columnsCount - 1) {
-                x = 0;
-            }
-            if (y < 0) {
-                y = rowsCount - 1;
-            } else if (y > rowsCount - 1) {
-                y = 0;
-            }
-
-            this.highlightedCellCoords = { y, x };
-        }
-
-        // compute position in matrix
-        const { y, x } = this.highlightedCellCoords;
-        this.matrix[y][x].isHighlighted = true;
-
-        customEvents.dispatchEvent('updatefield');
-    }
-
-    enterAndSpacePressHandler() {}
-
     #createMatrix() {
         const { rowsCount, columnsCount } = this.options;
         const matrix = [];
