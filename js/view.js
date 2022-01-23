@@ -1,269 +1,263 @@
-import { customEvents, createElement } from './utils';
+import { customEvents, createElement } from "./utils";
 
 export class MineSweeperView {
-    constructor(model) {
-        this.model = model;
-        this.html = null;
+	constructor(model) {
+		this.model = model;
+		this.html = null;
 
-        this.styles = {
-            colors: {
-                main: '#e77d26',
-                flag: '#646464',
-                mine: 'tomato',
-                text: '#e5e5e5',
-                stroke: 'rgb(156, 156, 156)',
-            },
-            font: {
-                size: 48,
-                family: 'Roboto',
-            },
-        };
+		this.drawOptions = null;
 
-        this.#init();
-    }
+		this.#init();
+	}
 
-    getHtml() {
-        return this.html;
-    }
+	getHtml() {
+		return this.html;
+	}
 
-    bindLeftClick(handler) {
-        this.html.addEventListener('mousedown', (event) => {
-            if (event.button === 0) {
-                const y = event.offsetY;
-                const x = event.offsetX;
+	bindLeftClick(handler) {
+		this.html.addEventListener("mousedown", (event) => {
+			if (event.button === 0) {
+				const y = event.offsetY;
+				const x = event.offsetX;
 
-                const id = this.#findCellByCoords(y, x).id;
-                if (id) {
-                    handler(id);
-                }
-            }
-        });
-    }
+				const id = this.findCellByCoords(y, x).id;
+				if (id) {
+					handler(id);
+				}
+			}
+		});
+	}
 
-    bindRightClick(handler) {
-        this.html.addEventListener('mousedown', (event) => {
-            if (event.button === 2) {
-                const y = event.offsetY;
-                const x = event.offsetX;
+	bindRightClick(handler) {
+		this.html.addEventListener("mousedown", (event) => {
+			if (event.button === 2) {
+				const y = event.offsetY;
+				const x = event.offsetX;
 
-                const id = this.#findCellByCoords(y, x).id;
-                if (id) {
-                    handler(id);
-                }
-            }
-        });
-    }
+				const id = this.findCellByCoords(y, x).id;
+				if (id) {
+					handler(id);
+				}
+			}
+		});
+	}
 
-    #init() {
-        // create view html element(canvas)
-        this.html = createElement({
-            tagName: 'canvas',
-            className: 'minesweeper-field',
-        });
-        // remove context menu
-        this.html.oncontextmenu = () => false;
+	#init() {
+		// create view html element(canvas)
+		this.html = createElement({
+			tagName: "canvas",
+			className: "minesweeper-field",
+		});
+		// remove context menu
+		this.html.oncontextmenu = () => false;
 
-        // init sizes
-        const { rowsCount, columnsCount } = this.model.getOptions();
-        const CELL_SIZE = 50;
-        const WIDTH = CELL_SIZE * columnsCount;
-        const HEIGHT = CELL_SIZE * rowsCount;
-        const DPI = 2;
-        const DPI_CELL_SIZE = CELL_SIZE * DPI;
-        const OFFSET = DPI_CELL_SIZE / 10;
+		// init sizes
+		const { rowsCount, columnsCount } = this.model.getOptions(),
+			dpi = 2,
+			cellSize = 50,
+			width = cellSize * columnsCount,
+			height = cellSize * rowsCount,
+			dpiWidth = width * dpi,
+			dpiHeight = height * dpi,
+			dpiCellSize = cellSize * dpi,
+			shownCellSize = dpiCellSize * 0.8,
+			linesLength = dpiCellSize * 0.6;
 
-        // set html element and inner canvas sizes
-        this.#setSizes(WIDTH, HEIGHT, DPI);
+		this.drawOptions = Object.freeze({
+			colors: {
+				main: "#e77d26",
+				flag: "#646464",
+				mine: "tomato",
+				text: "#e5e5e5",
+				stroke: "rgb(156, 156, 156)",
+			},
+			font: {
+				size: 48,
+				family: "Roboto",
+			},
+			rowsCount,
+			columnsCount,
+			width,
+			height,
+			cellSize,
+			dpi,
+			dpiWidth,
+			dpiHeight,
+			dpiCellSize,
+			shownCellSize,
+			linesLength,
+		});
 
-        // first draw view
-        this.updateView(DPI_CELL_SIZE, OFFSET);
+		this.setSizes(); // set html element and inner canvas sizes
+		this.updateView(); // first draw view
+		this.addCursorMoveEvents(); // add events to html element
 
-        // add events to html element
-        this.#addCursorEvents();
+		// event to update
+		customEvents.registerEvent("updatefield");
+		customEvents.addEventListener("updatefield", this.updateView.bind(this));
+	}
 
-        // event to update
-        customEvents.registerEvent('updatefield');
-        customEvents.addEventListener(
-            'updatefield',
-            this.updateView.bind(this, DPI_CELL_SIZE, OFFSET)
-        );
-    }
+	setSizes() {
+		const { width, height, dpiWidth, dpiHeight } = this.drawOptions;
 
-    #setSizes(width, height, dpi) {
-        // set Element size
-        this.html.style.width = width + 'px';
-        this.html.style.height = height + 'px';
-        // set Canvas inner size
-        this.html.width = width * dpi;
-        this.html.height = height * dpi;
-    }
+		// set Element size
+		this.html.style.width = width + "px";
+		this.html.style.height = height + "px";
+		// set Canvas inner size
+		this.html.width = dpiWidth;
+		this.html.height = dpiHeight;
+	}
 
-    updateView(cellSize, offset) {
-        const { rowsCount, columnsCount } = this.model.getOptions();
-        const matrix = this.model.getMatrix();
-        const ctx = this.html.getContext('2d');
+	updateView() {
+		const { dpiWidth, dpiHeight } = this.drawOptions;
+		const matrix = this.model.getMatrix();
+		const ctx = this.html.getContext("2d");
 
-        // clear canvas
-        ctx.clearRect(0, 0, this.html.width, this.html.height);
+		// clear canvas
+		ctx.clearRect(0, 0, dpiWidth, dpiHeight);
 
-        // draw
-        ctx.beginPath();
+		// draw
+		ctx.beginPath();
 
-        this.#drawLines(ctx, rowsCount, columnsCount, cellSize, offset * 2);
-        this.#drawCells(ctx, matrix, cellSize, offset);
+		this.drawLines(ctx);
+		this.drawCells(ctx, matrix);
 
-        ctx.closePath();
-    }
+		ctx.closePath();
+	}
 
-    #drawLines(ctx, rowsCount, columnsCount, cellSize, offset) {
-        ctx.strokeStyle = this.styles.colors.stroke;
+	drawLines(ctx) {
+		const {
+			rowsCount,
+			columnsCount,
+			dpiWidth,
+			dpiCellSize: cellSize,
+			linesLength,
+			dpi,
+		} = this.drawOptions;
+		const spaceBetweenLines = (dpiWidth - linesLength * columnsCount) / columnsCount;
 
-        const lineLength = cellSize - offset * 2;
+		ctx.strokeStyle = this.drawOptions.colors.stroke;
+		ctx.lineWidth = dpi / 2;
 
-        // horizontal
-        for (let i = 1; i < rowsCount; i++) {
-            const y = cellSize * i;
+		// horizontal
+		for (let i = 1; i < rowsCount; i++) {
+			const y = cellSize * i;
 
-            for (let j = 0; j < columnsCount; j++) {
-                const x = offset + j * cellSize;
-                ctx.moveTo(x, y);
-                ctx.lineTo(x + lineLength, y);
-            }
-        }
+			for (let j = 0; j < columnsCount; j++) {
+				let x = spaceBetweenLines / 2 + j * cellSize;
+				ctx.moveTo(x, y);
+				ctx.lineTo(x + linesLength, y);
+			}
+		}
 
-        // vertical
-        for (let i = 1; i < columnsCount; i++) {
-            const x = cellSize * i;
+		// vertical
+		for (let i = 1; i < columnsCount; i++) {
+			const x = cellSize * i;
 
-            for (let j = 0; j < rowsCount; j++) {
-                const y = offset + j * cellSize;
-                ctx.moveTo(x, y);
-                ctx.lineTo(x, y + lineLength);
-            }
-        }
+			for (let j = 0; j < rowsCount; j++) {
+				const y = spaceBetweenLines / 2 + j * cellSize;
+				ctx.moveTo(x, y);
+				ctx.lineTo(x, y + linesLength);
+			}
+		}
 
-        ctx.stroke();
-    }
+		ctx.stroke();
+	}
 
-    #drawCells(ctx, matrix, cellSize, offset) {
-        const { main, flag, mine } = this.styles.colors;
+	drawCells(ctx, matrix) {
+		const { dpiCellSize: cellSize, shownCellSize } = this.drawOptions;
+		const { main, flag, mine } = this.drawOptions.colors;
 
-        for (let i = 0; i < matrix.length; i++) {
-            for (let j = 0; j < matrix[i].length; j++) {
-                const { isOpen, isFlag, isMine, isHighlighted, number } =
-                    matrix[i][j];
+		for (let i = 0; i < matrix.length; i++) {
+			for (let j = 0; j < matrix[i].length; j++) {
+				const { isOpen, isFlag, isMine, number } = matrix[i][j];
 
-                let color = 'transparent',
-                    img = null;
-                if (!isOpen) {
-                    color = main;
-                    if (isFlag) {
-                        color = flag;
-                    }
-                } else if (isMine) {
-                    color = mine;
+				let color = "transparent",
+					img = null;
+				if (!isOpen) {
+					color = main;
+					if (isFlag) {
+						color = flag;
+					}
+				} else if (isMine) {
+					color = mine;
 
-                    img = '../Group 4.svg';
-                }
+					img = "../Group 4.svg";
+				}
 
-                const y = offset + i * cellSize;
-                const x = offset + j * cellSize;
-                const size = cellSize - offset * 2;
-                const isTextVisible = number > 0 && isOpen && !isMine;
-                let textContent = isTextVisible ? number : '';
+				const y = (cellSize - shownCellSize) / 2 + i * cellSize;
+				const x = (cellSize - shownCellSize) / 2 + j * cellSize;
+				const radius = (shownCellSize / 100) * 8;
+				const isTextVisible = number > 0 && isOpen && !isMine;
+				let textContent = isTextVisible ? number : "";
 
-                ctx.beginPath();
-                this.#drawCell(
-                    ctx,
-                    x,
-                    y,
-                    size,
-                    5,
-                    color,
-                    textContent,
-                    img,
-                    isHighlighted
-                );
-                ctx.closePath();
-            }
-        }
-    }
+				ctx.beginPath();
+				this.drawCell(ctx, x, y, shownCellSize, radius, color, textContent, img);
+				ctx.closePath();
+			}
+		}
+	}
 
-    #drawCell(ctx, x, y, size, radius = 5, color, text, img, isHighlighted) {
-        if (typeof radius === 'number') {
-            radius = { tl: radius, tr: radius, br: radius, bl: radius };
-        } else {
-            const defaultRadius = { tl: 0, tr: 0, br: 0, bl: 0 };
-            for (const side in defaultRadius) {
-                radius[side] = radius[side] || defaultRadius[side];
-            }
-        }
+	drawCell(ctx, x, y, size, radius = 5, color, text, img) {
+		if (typeof radius === "number") {
+			radius = { tl: radius, tr: radius, br: radius, bl: radius };
+		} else {
+			const defaultRadius = { tl: 0, tr: 0, br: 0, bl: 0 };
+			for (const side in defaultRadius) {
+				radius[side] = radius[side] || defaultRadius[side];
+			}
+		}
 
-        ctx.moveTo(x + radius.tl, y);
-        ctx.lineTo(x + size - radius.tr, y);
-        ctx.quadraticCurveTo(x + size, y, x + size, y + radius.tr);
-        ctx.lineTo(x + size, y + size - radius.br);
-        ctx.quadraticCurveTo(
-            x + size,
-            y + size,
-            x + size - radius.br,
-            y + size
-        );
-        ctx.lineTo(x + radius.bl, y + size);
-        ctx.quadraticCurveTo(x, y + size, x, y + size - radius.bl);
-        ctx.lineTo(x, y + radius.tl);
-        ctx.quadraticCurveTo(x, y, x + radius.tl, y);
+		ctx.moveTo(x + radius.tl, y);
+		ctx.lineTo(x + size - radius.tr, y);
+		ctx.quadraticCurveTo(x + size, y, x + size, y + radius.tr);
+		ctx.lineTo(x + size, y + size - radius.br);
+		ctx.quadraticCurveTo(x + size, y + size, x + size - radius.br, y + size);
+		ctx.lineTo(x + radius.bl, y + size);
+		ctx.quadraticCurveTo(x, y + size, x, y + size - radius.bl);
+		ctx.lineTo(x, y + radius.tl);
+		ctx.quadraticCurveTo(x, y, x + radius.tl, y);
 
-        if (isHighlighted) {
-            ctx.strokeStyle = 'rgb(56, 56, 255)';
-            ctx.lineWidth = 10;
-            ctx.stroke();
-            // ctx.shadowColor = 'blue';
-            // ctx.shadowBlur = 10;
-        } else {
-            // ctx.shadowColor = 'blue';
-            // ctx.shadowBlur = 0;
-        }
+		ctx.fillStyle = color;
+		ctx.fill();
 
-        ctx.fillStyle = color;
-        ctx.fill();
+		if (text) {
+			const {
+				colors: { text: textColor },
+				font: { size: fontSize, family },
+			} = this.drawOptions;
 
-        if (text) {
-            const {
-                colors: { text: textColor },
-                font: { size: fontSize, family },
-            } = this.styles;
+			ctx.fillStyle = textColor;
+			ctx.font = `${fontSize}px ${family}`;
 
-            ctx.fillStyle = textColor;
-            ctx.font = `${fontSize}px ${family}`;
+			ctx.fillText(text, x + size / 2.9, y + size / 1.5);
+		}
+	}
 
-            ctx.fillText(text, x + size / 2.9, y + size / 1.5);
-        }
-    }
+	findCellByCoords(y, x) {
+		const { cellSize } = this.drawOptions;
+		const matrix = this.model.getMatrix();
 
-    #findCellByCoords(y, x) {
-        const matrix = this.model.getMatrix();
+		y = Math.floor(y / cellSize);
+		x = Math.floor(x / cellSize);
 
-        y = Math.floor(y / 50);
-        x = Math.floor(x / 50);
+		return matrix[y][x];
+	}
 
-        return matrix[y][x];
-    }
+	addCursorMoveEvents() {
+		this.html.addEventListener("mousemove", (event) => {
+			const y = event.offsetY;
+			const x = event.offsetX;
 
-    #addCursorEvents() {
-        this.html.addEventListener('mousemove', (event) => {
-            const y = event.offsetY;
-            const x = event.offsetX;
+			const cell = this.findCellByCoords(y, x);
 
-            const cell = this.#findCellByCoords(y, x);
+			if (!cell) return;
 
-            if (cell) {
-                if (!cell.isOpen) {
-                    this.html.style.cursor = 'pointer';
-                } else {
-                    this.html.style.cursor = 'default';
-                }
-            }
-        });
-    }
+			if (!cell.isOpen) {
+				this.html.style.cursor = "pointer";
+			} else {
+				this.html.style.cursor = "default";
+			}
+		});
+	}
 }
