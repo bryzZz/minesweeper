@@ -12,10 +12,15 @@ jobs:
             - name: Checkout
               uses: actions/checkout@v2
 
-            - name: Install and Build
-              run: |
-                  npm ci
-                  npm run build
+            - name: Install
+              uses: borales/actions-yarn@v2.3.0
+              with:
+                  cmd: install
+
+            - name: Build
+              uses: borales/actions-yarn@v2.3.0
+              with:
+                  cmd: build
 
             - name: Deploy 🚀
               uses: JamesIves/github-pages-deploy-action@v4.2.2
