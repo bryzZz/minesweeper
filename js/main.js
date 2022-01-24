@@ -160,5 +160,3 @@ function endHandler(title, className) {
 	container.append(endScreenElement);
 	container.classList.toggle("overflow-hidden");
 }
-
-console.log("updated");
