@@ -9,42 +9,95 @@ export class MineSweeperView {
         this.drawOptions = null;
         this.icons = [];
 
-        this.#init();
+        this.init();
     }
 
     getHtml() {
         return this.html;
     }
 
-    bindLeftClick(handler) {
-        this.html.addEventListener("mousedown", (event) => {
-            if (event.button === 0) {
-                const y = event.offsetY;
-                const x = event.offsetX;
+    bindHandlers({ leftClick, rightClick, longPress }) {
+        const pressDuration = 500;
+        let pressTimer,
+            isMove = false,
+            isPressed = false,
+            x,
+            y;
 
+        const getTouchPos = (canvasDom, touchEvent) => {
+            const rect = canvasDom.getBoundingClientRect();
+            return {
+                x: touchEvent.touches[0].clientX - rect.left,
+                y: touchEvent.touches[0].clientY - rect.top,
+            };
+        };
+
+        const startFn = (button) => {
+            isPressed = false;
+            if (button === 0) {
+                pressTimer = setTimeout(() => {
+                    if (!isMove) {
+                        const id = this.findCellByCoords(y, x).id;
+                        if (id) {
+                            longPress(id);
+                        }
+                    }
+
+                    isPressed = true;
+                }, pressDuration);
+            } else if (button === 2) {
                 const id = this.findCellByCoords(y, x).id;
                 if (id) {
-                    handler(id);
+                    rightClick(id);
                 }
             }
-        });
-    }
+        };
 
-    bindRightClick(handler) {
-        this.html.addEventListener("mousedown", (event) => {
-            if (event.button === 2) {
-                const y = event.offsetY;
-                const x = event.offsetX;
-
+        const endFn = (button) => {
+            if (button === 0 && !isPressed && !isMove) {
                 const id = this.findCellByCoords(y, x).id;
                 if (id) {
-                    handler(id);
+                    leftClick(id);
                 }
             }
+
+            clearTimeout(pressTimer);
+        };
+
+        this.html.addEventListener("touchstart", (event) => {
+            console.log("start");
+            event.stopPropagation();
+            const coords = getTouchPos(this.html, event);
+            y = coords.y;
+            x = coords.x;
+
+            startFn(0);
         });
+        this.html.addEventListener("touchend", (event) => {
+            console.log("end");
+            event.stopPropagation();
+            endFn(0);
+
+            isMove = false;
+        });
+        this.html.addEventListener("touchmove", (event) => {
+            event.stopPropagation();
+            isMove = true;
+        });
+
+        this.html.addEventListener("mousedown", (event) => {
+            event.stopPropagation();
+
+            y = event.offsetY;
+            x = event.offsetX;
+            const button = event.button;
+
+            startFn(button);
+        });
+        this.html.addEventListener("mouseup", (event) => endFn(event.button));
     }
 
-    #init() {
+    init() {
         // create view html element(canvas)
         this.html = createElement({
             tagName: "canvas",
@@ -98,7 +151,6 @@ export class MineSweeperView {
         this.addCursorMoveEvents(); // add events to html element
 
         // event to update
-        customEvents.registerEvent("updatefield");
         customEvents.addEventListener("updatefield", this.updateView.bind(this));
     }
 

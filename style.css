@@ -19,14 +19,19 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    gap: 5px;
+}
+
+.header__icon {
+    width: 25px;
+    height: 25px;
 }
 
 .mines-counter {
     font-size: 18px;
-}
-
-.mines-counter > span {
     font-weight: 700;
+
+    user-select: none;
 }
 
 .container {

@@ -3,37 +3,37 @@ import { MineSweeperController } from "./controller";
 import { createElement } from "./utils";
 
 let mineSweeper = new MineSweeperController({
-	rowsCount: 10,
-	columnsCount: 10,
-	minesCount: 9,
+    rowsCount: 10,
+    columnsCount: 10,
+    minesCount: 9,
 });
 
 const app = document.querySelector("#app"),
-	header = app.querySelector(".header"),
-	container = app.querySelector(".container");
+    header = app.querySelector(".header"),
+    container = app.querySelector(".container");
 
 // start and restart game function
 function start(container) {
-	container.innerHTML = "";
-	mineSweeper.start();
+    container.innerHTML = "";
+    mineSweeper.start();
 
-	const view = mineSweeper.getView().getHtml();
+    const view = mineSweeper.getView().getHtml();
 
-	container.append(view);
+    container.append(view);
 
-	// Handle mines counter
-	header.querySelector(".mines-counter")?.remove();
+    // Handle mines counter
+    header.querySelector(".mines-counter")?.remove();
 
-	const minesCounterElement = createElement({
-		tagName: "div",
-		className: "mines-counter",
-	});
+    const minesCounterElement = createElement({
+        tagName: "div",
+        className: "mines-counter",
+    });
 
-	mineSweeper.onMinesCounterChange((minesCount) => {
-		minesCounterElement.innerHTML = `Mines left: <span>${minesCount}</span>`;
-	});
+    mineSweeper.onMinesCounterChange((minesCount) => {
+        minesCounterElement.innerHTML = `Mines left: ${minesCount}`;
+    });
 
-	header.append(minesCounterElement);
+    header.append(minesCounterElement);
 }
 
 start(container);
@@ -42,90 +42,90 @@ start(container);
 const removeDragToScroll = addDragToScroll(container);
 
 function addDragToScroll(element) {
-	const view = mineSweeper.getView().getHtml();
+    const view = mineSweeper.getView().getHtml();
 
-	let pos = { top: 0, left: 0, x: 0, y: 0 },
-		mousePressed = false,
-		spacePressed = false;
+    let pos = { top: 0, left: 0, x: 0, y: 0 },
+        mousePressed = false,
+        spacePressed = false;
 
-	document.addEventListener("keydown", keyDownHandler);
-	document.addEventListener("keyup", keyUpHandler);
-	element.addEventListener("mousedown", mouseDownHandler);
+    document.addEventListener("keydown", keyDownHandler);
+    document.addEventListener("keyup", keyUpHandler);
+    element.addEventListener("mousedown", mouseDownHandler);
 
-	function keyDownHandler(e) {
-		if (e.code !== "Space") return;
+    function keyDownHandler(e) {
+        if (e.code !== "Space") return;
 
-		e.preventDefault();
+        e.preventDefault();
 
-		spacePressed = true;
+        spacePressed = true;
 
-		if (!mousePressed) {
-			element.style.cursor = "grab";
-		}
+        if (!mousePressed) {
+            element.style.cursor = "grab";
+        }
 
-		view.classList.add("no-pointer-events");
-	}
+        view.classList.add("no-pointer-events");
+    }
 
-	function keyUpHandler(e) {
-		if (e.code !== "Space") return;
+    function keyUpHandler(e) {
+        if (e.code !== "Space") return;
 
-		spacePressed = false;
+        spacePressed = false;
 
-		if (!mousePressed) {
-			element.style.cursor = "default";
-			view.classList.remove("no-pointer-events");
-		}
-	}
+        if (!mousePressed) {
+            element.style.cursor = "default";
+            view.classList.remove("no-pointer-events");
+        }
+    }
 
-	function mouseDownHandler(e) {
-		if (spacePressed) {
-			mousePressed = true;
+    function mouseDownHandler(e) {
+        if (spacePressed) {
+            mousePressed = true;
 
-			element.style.cursor = "grabbing";
+            element.style.cursor = "grabbing";
 
-			pos = {
-				// The current scroll
-				left: element.scrollLeft,
-				top: element.scrollTop,
-				// Get the current mouse position
-				x: e.clientX,
-				y: e.clientY,
-			};
+            pos = {
+                // The current scroll
+                left: element.scrollLeft,
+                top: element.scrollTop,
+                // Get the current mouse position
+                x: e.clientX,
+                y: e.clientY,
+            };
 
-			element.addEventListener("mousemove", mouseMoveHandler);
-			element.addEventListener("mouseup", mouseUpHandler);
-		}
-	}
+            element.addEventListener("mousemove", mouseMoveHandler);
+            element.addEventListener("mouseup", mouseUpHandler);
+        }
+    }
 
-	function mouseMoveHandler(e) {
-		// How far the mouse has been moved
-		const dx = e.clientX - pos.x;
-		const dy = e.clientY - pos.y;
+    function mouseMoveHandler(e) {
+        // How far the mouse has been moved
+        const dx = e.clientX - pos.x;
+        const dy = e.clientY - pos.y;
 
-		// Scroll the element
-		element.scrollTop = pos.top - dy;
-		element.scrollLeft = pos.left - dx;
-	}
+        // Scroll the element
+        element.scrollTop = pos.top - dy;
+        element.scrollLeft = pos.left - dx;
+    }
 
-	function mouseUpHandler() {
-		element.removeEventListener("mousemove", mouseMoveHandler);
-		element.removeEventListener("mouseup", mouseUpHandler);
+    function mouseUpHandler() {
+        element.removeEventListener("mousemove", mouseMoveHandler);
+        element.removeEventListener("mouseup", mouseUpHandler);
 
-		mousePressed = false;
+        mousePressed = false;
 
-		if (!spacePressed) {
-			element.style.cursor = "default";
-			view.classList.remove("no-pointer-events");
-		}
-	}
+        if (!spacePressed) {
+            element.style.cursor = "default";
+            view.classList.remove("no-pointer-events");
+        }
+    }
 
-	function removeEventsHandler() {
-		document.removeEventListener("keydown", keyDownHandler);
-		document.removeEventListener("keyup", keyUpHandler);
-		element.removeEventListener("mousedown", mouseDownHandler);
-	}
+    function removeEventsHandler() {
+        document.removeEventListener("keydown", keyDownHandler);
+        document.removeEventListener("keyup", keyUpHandler);
+        element.removeEventListener("mousedown", mouseDownHandler);
+    }
 
-	return removeEventsHandler;
+    return removeEventsHandler;
 }
 
 // Handle end
@@ -133,30 +133,33 @@ mineSweeper.onWin(() => endHandler("You Win!", "win"));
 mineSweeper.onLose(() => endHandler("You Lose", "lose"));
 
 function endHandler(title, className) {
-	removeDragToScroll();
+    removeDragToScroll();
 
-	const endScreenElement = createElement({
-		tagName: "div",
-		className: ["end-screen", className],
-	});
+    const endScreenElement = createElement({
+        tagName: "div",
+        className: ["end-screen", className],
+    });
 
-	endScreenElement.innerHTML = `
+    endScreenElement.innerHTML = `
         <div>${title}</div>
         <div>Click any button to restart</div>
     `;
 
-	const anyButtonPressHandler = () => {
-		start(container);
+    const anyButtonPressHandler = () => {
+        start(container);
 
-		endScreenElement.removeEventListener("click", anyButtonPressHandler);
-		document.removeEventListener("keypress", anyButtonPressHandler);
+        endScreenElement.removeEventListener("click", anyButtonPressHandler);
+        document.removeEventListener("keypress", anyButtonPressHandler);
 
-		endScreenElement.remove();
-	};
+        endScreenElement.remove();
+    };
 
-	endScreenElement.addEventListener("click", anyButtonPressHandler);
-	document.addEventListener("keypress", anyButtonPressHandler);
+    endScreenElement.addEventListener("mousedown", anyButtonPressHandler);
+    document.addEventListener("keypress", anyButtonPressHandler);
 
-	container.append(endScreenElement);
-	container.classList.toggle("overflow-hidden");
+    // setTimeout(() => {
+    container.append(endScreenElement);
+    // }, 50);
+
+    container.classList.toggle("overflow-hidden");
 }
